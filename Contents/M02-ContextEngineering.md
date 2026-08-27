@@ -761,7 +761,7 @@ result = orchestrator("재생 에너지 시장 분석 보고서를 작성하라"
 
 ### 3.4 구현 예시 — Strands 캐싱 3종
 
-Strands Agents SDK는 공급자 독립 인터페이스로 캐싱을 간소화하고, 지표를 `response.metrics.accumulated_usage`로 자동 노출합니다. ([Strands 캐싱 문서](https://strandsagents.com/latest/documentation/docs/user-guide/concepts/model-providers/amazon-bedrock/#caching))
+Strands Agents SDK는 공급자 독립 인터페이스로 캐싱을 간소화하고, 지표를 `response.metrics.accumulated_usage`로 자동 노출합니다. ([Strands 캐싱 문서](https://strandsagents.com/docs/user-guide/concepts/model-providers/amazon-bedrock/#caching))
 
 **(a) 시스템 지침 캐시** — 역할·어조·제약처럼 거의 안 변하는 부분.
 

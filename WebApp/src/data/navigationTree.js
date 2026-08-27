@@ -50,7 +50,7 @@ export const NAVIGATION_TREE = [
       },
       {
         id: 'M06-WrapUp',
-        title: '모듈 6: 과정 마무리',
+        title: '모듈 6: 참고 자료 및 공식 문서',
         type: 'item',
       },
     ],

@@ -575,7 +575,7 @@ cloudwatch.put_metric_alarm(
 
 #### (4) 보강 — 평가를 넘어선 "테스트" 계층
 
-> **🏛️ 심화 보강 — 다층 테스트 프레임워크 (AGENTOPS06-BP01)**: AgentCore Evaluations는 *품질 평가*에 강하지만, Well-Architected는 그 앞단에 **테스트 피라미드**를 둘 것을 권합니다 — 단위(unit) → 통합(integration) → 엔드투엔드(end-to-end) → **섀도(shadow)** 테스트. 특히 섀도 테스트는 새 버전을 프로덕션 트래픽에 *영향 없이 병렬 실행*해 실제 트래픽으로 검증합니다. 온디맨드 평가를 CI/CD 게이트로 쓰고, 섀도 테스트로 배포 전 실트래픽 검증을 더하면 회귀를 사용자 도달 전에 막습니다. (AgentCore Evaluations는 벤치마크 데이터세트를 직접 지원하지 않으므로, 데이터세트 기반 평가가 필요하면 [Strands Evaluations](https://strandsagents.com/latest/documentation/docs/user-guide/evals-sdk/quickstart/)를 병행 고려)
+> **🏛️ 심화 보강 — 다층 테스트 프레임워크 (AGENTOPS06-BP01)**: AgentCore Evaluations는 *품질 평가*에 강하지만, Well-Architected는 그 앞단에 **테스트 피라미드**를 둘 것을 권합니다 — 단위(unit) → 통합(integration) → 엔드투엔드(end-to-end) → **섀도(shadow)** 테스트. 특히 섀도 테스트는 새 버전을 프로덕션 트래픽에 *영향 없이 병렬 실행*해 실제 트래픽으로 검증합니다. 온디맨드 평가를 CI/CD 게이트로 쓰고, 섀도 테스트로 배포 전 실트래픽 검증을 더하면 회귀를 사용자 도달 전에 막습니다. (AgentCore Evaluations는 벤치마크 데이터세트를 직접 지원하지 않으므로, 데이터세트 기반 평가가 필요하면 [Strands Evaluations](https://strandsagents.com/docs/user-guide/evals-sdk/quickstart/)를 병행 고려)
 
 ### 4.3 구현 요건 및 절차
 
