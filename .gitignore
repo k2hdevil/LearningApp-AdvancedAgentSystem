@@ -1,0 +1,16 @@
+# 의존성
+node_modules/
+
+# 빌드 산출물 (Amplify 가 빌드하므로 커밋하지 않는다)
+WebApp/dist/
+WebApp/deploy.zip
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+
+# 에디터/도구
+.kiro/

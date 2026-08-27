@@ -1,0 +1,246 @@
+/* Markdown 콘텐츠 스타일 — Cloudscape 디자인 토큰 기반 */
+.markdown-content {
+  max-width: 900px;
+  padding: 0 8px 40px;
+  line-height: 1.7;
+  color: var(--color-text-body-default-vvtq8u, #16191f);
+}
+
+/* 헤딩 */
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+  color: var(--color-text-heading-default-izpp46, #0f1b2d);
+  scroll-margin-top: 80px;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+}
+
+.markdown-content h1 {
+  font-size: 28px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--color-border-divider-default-nr68jt, #e9ebed);
+  padding-bottom: 12px;
+  margin-top: 0;
+}
+
+.markdown-content h2 {
+  font-size: 22px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--color-border-divider-default-nr68jt, #e9ebed);
+  padding-bottom: 8px;
+}
+
+.markdown-content h3 {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.markdown-content h4 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 단락 */
+.markdown-content p {
+  margin: 0.8em 0;
+}
+
+/* 링크 */
+.markdown-content a {
+  color: var(--color-text-link-default-hude44, #0972d3);
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+/* 리스트 */
+.markdown-content ul,
+.markdown-content ol {
+  padding-left: 24px;
+  margin: 0.5em 0;
+}
+
+.markdown-content li {
+  margin: 0.3em 0;
+}
+
+.markdown-content li > ul,
+.markdown-content li > ol {
+  margin: 0.2em 0;
+}
+
+/* 인라인 코드 */
+.markdown-content .inline-code {
+  background: var(--color-background-code-editor-gutter-default-15qdwh, #f3f3f7);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text-body-default-vvtq8u, #16191f);
+}
+
+/* 코드 블록 래퍼 */
+.code-block-wrapper {
+  margin: 16px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border-divider-default-nr68jt, #e9ebed);
+}
+
+.code-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+}
+
+.code-language {
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.copy-button {
+  background: transparent;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+/*
+ * 코드 블록 헤더와 복사 버튼은 본문 배경이 아니라 '코드 블록 배경'에 얹히므로
+ * Cloudscape 토큰이 아니라 모드별 색을 직접 지정한다.
+ * 코드 본문 배경은 CodeBlockWrapper 가 신택스 하이라이터 테마로 정한다
+ * (라이트: vs + #f3f3f7, 다크: vscDarkPlus + #1e1e1e).
+ * is-light / is-dark 클래스는 CodeBlockWrapper 가 다크 모드 상태로 붙인다.
+ */
+
+/* 라이트 모드 — 흰색 계통 */
+.code-block-wrapper.is-light .code-block-header {
+  background: #eaeded;
+  border-bottom: 1px solid #d5dbdb;
+}
+
+.code-block-wrapper.is-light .code-language {
+  color: #5f6b7a;
+}
+
+.code-block-wrapper.is-light .copy-button {
+  border: 1px solid #b4b9c0;
+  color: #414d5c;
+}
+
+.code-block-wrapper.is-light .copy-button:hover {
+  background: #d5dbdb;
+  border-color: #7d8998;
+  color: #16191f;
+}
+
+/* 다크 모드 — 짙은 계통 */
+.code-block-wrapper.is-dark .code-block-header {
+  background: #2d2d2d;
+  border-bottom: 1px solid #3e3e3e;
+}
+
+.code-block-wrapper.is-dark .code-language {
+  color: #aaa;
+}
+
+.code-block-wrapper.is-dark .copy-button {
+  border: 1px solid #555;
+  color: #ccc;
+}
+
+.code-block-wrapper.is-dark .copy-button:hover {
+  background: #444;
+  border-color: #888;
+  color: #fff;
+}
+
+/* 테이블 */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 16px 0;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-divider-default-nr68jt, #e9ebed);
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.markdown-content thead {
+  background: var(--color-background-table-header-hdjxos, #ffffff);
+}
+
+.markdown-content th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text-column-header-e6urd1, #424650);
+  border-bottom: 2px solid var(--color-border-divider-default-nr68jt, #e9ebed);
+}
+
+.markdown-content td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border-divider-default-nr68jt, #e9ebed);
+  color: var(--color-text-body-default-vvtq8u, #16191f);
+}
+
+.markdown-content tr:hover {
+  background: var(--color-background-dropdown-item-hover-zhisua, rgba(0, 7, 22, 0.04));
+}
+
+/* Blockquote */
+.md-blockquote {
+  background: var(--color-background-status-info-sfobba, #f0fbff);
+  border-left: 4px solid var(--color-text-link-default-hude44, #0972d3);
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 0 8px 8px 0;
+}
+
+.md-blockquote p {
+  margin: 0.4em 0;
+}
+
+.md-blockquote strong {
+  color: var(--color-text-heading-default-izpp46, #0f1b2d);
+}
+
+/* 구분선 */
+.markdown-content hr {
+  border: none;
+  border-top: 1px solid var(--color-border-divider-default-nr68jt, #e9ebed);
+  margin: 24px 0;
+}
+
+/* 이미지 */
+.markdown-content img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 16px 0;
+}
+
+/* strong/bold */
+.markdown-content strong {
+  font-weight: 600;
+  color: var(--color-text-heading-default-izpp46, #0f1b2d);
+}
+
+/* 로딩 상태 */
+.loading-container {
+  padding: 40px;
+  text-align: center;
+  color: var(--color-text-body-default-vvtq8u, #16191f);
+  font-size: 16px;
+}

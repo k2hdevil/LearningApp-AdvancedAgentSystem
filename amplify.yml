@@ -1,0 +1,22 @@
+version: 1
+applications:
+  # 프런트엔드는 저장소 루트가 아니라 WebApp/ 아래에 있다.
+  - appRoot: WebApp
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            # package-lock.json 기준 재현 가능 설치
+            - npm ci
+        build:
+          commands:
+            # vite build -> WebApp/dist 생성
+            - npm run build
+      artifacts:
+        # appRoot 기준 상대 경로. WebApp/dist 를 배포한다.
+        baseDirectory: dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*

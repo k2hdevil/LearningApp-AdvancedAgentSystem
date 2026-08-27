@@ -1,0 +1,38 @@
+/* 글로벌 레이아웃 CSS */
+
+/* TopNavigation 고정 (sticky) */
+#top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 1002;
+}
+
+/* 콘텐츠 영역 */
+.content-area {
+  padding: 8px 16px;
+  min-height: calc(100vh - 56px);
+}
+
+/* body에 overflow-x: hidden 사용 금지 (sticky가 무효화됨) */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* 스크롤바 스타일 (선택적) */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-divider-default-nr68jt, #e9ebed);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
