@@ -781,7 +781,30 @@ returns_agent = build_agent("returns", RETURNS_PROMPT)
 product_agent = build_agent("product", PRODUCT_PROMPT)
 # 기술 지원은 조회만 한다 → 공유 기억은 읽지만 새 이벤트는 남기지 않는다
 support_agent = build_agent("support", SUPPORT_PROMPT, read_only=True)
+
+# --- 실제 호출: 장기 메모리(영속)와 invocation_state(휘발성)는 서로 다른 축이다 ---
+# 장기 메모리   : 위 retrieval_config 가 자동으로 공유 네임스페이스를 읽어 프롬프트에 주입한다
+#                (세션·에이전트를 넘는 '영속 지식' — 이 고객이 누구인지)
+# invocation_state: 이번 호출 한정의 '휘발성 값' 을 도구·후크로 전파한다
+#                (요청 컨텍스트 — 지금 무엇을 하는지). 메모리에 저장되지 않는다.
+request_state = {
+    "channel": "web",          # 이번 요청의 유입 경로
+    "locale": "ko-KR",
+    "trace_id": "req-9f3c",    # 관찰성 상관 ID (모듈 4)
+    "debug_mode": False,
+}
+
+answer = product_agent(
+    "지난번에 본 방수 카메라, 재고 있어?",
+    # retrieval_config 로 장기 기억은 이미 자동 주입된다. invocation_state 는 그 위에
+    # '이번 실행'의 컨텍스트를 얹어 도구(@tool(context=True))와 후크로 전파한다.
+    invocation_state=request_state,
+)
+# 정리: '고객이 방수 카메라를 선호한다'는 장기 메모리에서 오고(영속),
+#       'web 채널 / ko-KR / trace_id' 는 invocation_state 에서 온다(이번 호출 한정).
 ```
+
+> **💡 두 축을 혼동하지 마세요**: `invocation_state`(모듈 초반 오케스트레이션 예시 참고)는 **한 번의 실행 안에서** 노드·도구로 전파되는 휘발성 상태입니다. 호출이 끝나면 사라지고 AgentCore Memory에 저장되지 않습니다. 반면 장기 메모리 네임스페이스는 **세션과 에이전트를 넘어** 지속되는 영속 지식입니다. "이번 요청의 컨텍스트"는 `invocation_state`로, "이 고객에 대해 축적된 지식"은 장기 메모리로 — 둘은 대체 관계가 아니라 한 호출에서 함께 쓰입니다.
 
 **3) 프레임워크 없이 직접 검색 — 정확 일치 vs 계층 검색**
 
