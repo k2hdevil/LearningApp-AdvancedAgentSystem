@@ -860,51 +860,67 @@ AgentCore는 **단일 인터페이스 엔드포인트** `com.amazonaws.region.be
 
 #### (4) 종합 아키텍처 다이어그램
 
-파트 3에서 다룬 요소 — 다중 AZ 프라이빗 서브넷, 보안 그룹, NACL, ENI, 인터페이스 엔드포인트 2종(+ 필수 인프라 엔드포인트), PrivateLink — 를 하나의 아키텍처로 통합하면 다음과 같습니다.
+파트 3에서 다룬 요소 — 다중 AZ 프라이빗 서브넷, 보안 그룹, NACL, ENI, 인터페이스 엔드포인트 2종(+ 필수 인프라 엔드포인트), PrivateLink — 를 통합하되, **두 갈래 통신을 구분**하는 것이 핵심입니다. 클라이언트가 에이전트를 호출하는 **(A) 인바운드**와, 에이전트가 다른 서비스에 접근하는 **(B) 아웃바운드**는 서로 다른 경로이며, VPC 격리(파트 3의 주제)가 적용되는 곳은 (B)입니다.
 
 ```ascii
-[프라이빗 VPC 안의 AgentCore 에이전트 - 종합 네트워크 아키텍처]
+[프라이빗 VPC 안의 AgentCore 에이전트 - 두 갈래 통신]
 
-사용자 / 호출자
-  │  HTTPS (SigV4 또는 OAuth)
+두 통신을 구분하는 것이 핵심이다.
+  (A) 인바운드  : 클라이언트가 에이전트를 호출하고 응답을 받는다 (요청-응답 왕복)
+  (B) 아웃바운드: 에이전트가 Memory / Gateway 등 다른 서비스에 접근한다 (파트 3 주제)
+
+
+== (A) 인바운드: 클라이언트 <-> 에이전트 호출 =========================
+
+클라이언트 (SDK 또는 HTTPS)
+  │
+  │  1) 요청:  InvokeAgentRuntime  (POST /invocations, 페이로드)
+  │            SigV4 또는 OAuth 베어러 토큰으로 인증
   v
+AgentCore 데이터 영역 엔드포인트  (AWS 관리, AgentCore Identity 가 토큰 검증)
+  │
+  │  2) 라우팅: 엔드포인트 -> 해당 버전의 에이전트 세션(microVM)
+  v
+에이전트 (AgentCore Runtime, 프라이빗 서브넷의 microVM)
+  │
+  │  3) 응답:  '호출한 그 연결'로 되돌아온다. 별도 인바운드 경로가 없다.
+  │           - 스트리밍(text/event-stream): 부분 결과를 청크로 흘려보냄
+  │           - 버퍼(application/json): 완료 후 한 번에 반환
+  v
+클라이언트  (같은 InvokeAgentRuntime 호출의 HTTP 응답 본문)
+
+
+== (B) 아웃바운드: 에이전트 -> AWS 서비스 (여기가 VPC 격리 대상) =======
+
+에이전트 (프라이빗 서브넷)
+  │
+  ├─ 보안 그룹  (상태 저장, 최소 권한)  ->  ENI (프라이빗 IP)
+  │
+  v
+VPC 인터페이스 엔드포인트  (+ PrivateLink, 엔드포인트 정책으로 제한)
+  │    프라이빗 DNS on -> 퍼블릭 이름도 엔드포인트 프라이빗 IP 로 해석
+  │
+  ├─ com.amazonaws.<region>.bedrock-agentcore
+  │     -> Runtime / Memory / Identity / Code Interpreter / Browser
+  ├─ com.amazonaws.<region>.bedrock-agentcore.gateway
+  │     -> AgentCore Gateway (MCP 도구)
+  └─ 필수 인프라 엔드포인트: ECR (ecr.dkr / ecr.api), S3, CloudWatch Logs
+  │
+  v
+AWS 백본  (인터넷 게이트웨이 / NAT 불필요, 트래픽이 AWS 내부에만 머문다)
+
+
+[VPC 밑그림]  다중 AZ 로 이중화, NACL 은 서브넷 경계의 보조 가드레일
 ┌─ AWS 리전
 │
-├─ VPC (다중 AZ, 인터넷 게이트웨이 없음)
-│  │
-│  ├─ NACL  (서브넷 경계, 상태 비저장, 보조 가드레일)
-│  ├─ 라우팅 테이블  (AgentCore 트래픽을 인터넷이 아닌 엔드포인트로)
-│  │
-│  ├─ 가용 영역 A / 프라이빗 서브넷
-│  │  ├─ 에이전트 컴퓨팅  (AgentCore Runtime, microVM)
-│  │  ├─ 보안 그룹  (상태 저장, 최소 권한, 필요한 포트만)
-│  │  └─ ENI  (프라이빗 IP)
-│  │
-│  ├─ 가용 영역 B / 프라이빗 서브넷   (HA 를 위한 이중화)
-│  │  ├─ 에이전트 컴퓨팅
-│  │  └─ ENI
-│  │
-│  └─ VPC 인터페이스 엔드포인트  (엔드포인트 정책으로 접근 제한)
-│     │    프라이빗 DNS on -> 퍼블릭 이름도 엔드포인트 프라이빗 IP 로 해석
-│     │
-│     ├─ com.amazonaws.<region>.bedrock-agentcore
-│     │     -> Runtime / Memory / Identity / Code Interpreter / Browser
-│     │
-│     ├─ com.amazonaws.<region>.bedrock-agentcore.gateway
-│     │     -> AgentCore Gateway  (MCP 도구)
-│     │
-│     └─ 필수 인프라 엔드포인트  (인터넷 없는 VPC 컨테이너 배포용)
-│           -> ECR (ecr.dkr / ecr.api), S3 (게이트웨이 EP), CloudWatch Logs
-│
-│         모든 트래픽은 AWS PrivateLink 를 통해 AWS 백본에만 머문다
-│         (인터넷 게이트웨이 / NAT 불필요, 전송 중 데이터 보호)
-│         v
-└─ AWS 서비스 계정  (관리형)
-     ├─ AgentCore Runtime / Memory / Identity / Gateway
-     └─ Amazon Bedrock 기반 모델 (Nova / Claude)
+└─ VPC (다중 AZ, IGW 없음) + NACL + 라우팅 테이블
+   ├─ 가용 영역 A / 프라이빗 서브넷: 에이전트 + 보안 그룹 + ENI
+   └─ 가용 영역 B / 프라이빗 서브넷: 에이전트 + ENI  (HA)
 ```
 
-이 그림의 핵심은 **에이전트 컴퓨팅이 인터넷 경로 없이 프라이빗 서브넷에만 있고**, 모든 AgentCore·인프라 접근이 인터페이스 엔드포인트와 PrivateLink를 거쳐 AWS 백본에 머문다는 점입니다. 다중 AZ로 가용성을, 보안 그룹·NACL·엔드포인트 정책의 3중 제어로 최소 권한을 확보합니다.
+**응답은 어떻게 돌아오는가**: `InvokeAgentRuntime`은 하나의 요청-응답 API입니다. 클라이언트가 데이터 영역 엔드포인트로 `POST /invocations`를 보내면, 결과는 **바로 그 호출의 HTTP 응답 본문**으로 돌아옵니다 — 응답을 위한 별도의 역방향 경로나 콜백이 없습니다. 응답은 두 형태입니다. **스트리밍**(`text/event-stream`)은 에이전트가 생성하는 대로 부분 결과를 청크로 흘려보내고, **버퍼**(`application/json`)는 완료 후 한 번에 반환합니다. 페이로드는 최대 100MB이며, `runtimeSessionId`로 여러 호출에 걸쳐 대화 맥락을 유지합니다.
+
+**왜 (A)와 (B)를 나눠 그렸는가**: 이 둘을 한 흐름으로 그리면 "클라이언트 호출이 VPC를 뚫고 서비스 계정까지 일직선으로 간다"처럼 오해됩니다. 실제로는 (A) 클라이언트 호출은 AWS가 관리하는 데이터 영역 엔드포인트를 향하고, (B) 에이전트의 아웃바운드만 프라이빗 서브넷에서 VPC 인터페이스 엔드포인트·PrivateLink를 거칩니다. **파트 3의 격리(보안 그룹·NACL·엔드포인트 정책·PrivateLink)가 적용되는 곳은 (B)**이고, 에이전트 컴퓨팅은 인터넷 경로 없이 프라이빗 서브넷에만 존재합니다. 다중 AZ로 가용성을, 3중 제어로 최소 권한을 확보합니다.
 
 ### 3.5 모범 사례 (Well-Architected Agentic AI Lens)
 
