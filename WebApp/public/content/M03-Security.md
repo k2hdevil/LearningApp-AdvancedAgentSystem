@@ -858,6 +858,54 @@ AgentCore는 **단일 인터페이스 엔드포인트** `com.amazonaws.region.be
 
 프라이빗 VPC의 에이전트가 AgentCore Memory에 접근할 때: ① 아웃바운드 규칙이 설정된 **보안 그룹** 통과 → ② 프라이빗 서브넷의 **ENI**(서비스 연결 역할이 자동 생성, 프라이빗 IP 할당) 통과 → ③ **VPC 인터페이스 엔드포인트**로 라우팅(프라이빗 DNS면 퍼블릭 이름도 프라이빗 IP로 확인) → ④ **AWS 백본**을 통해 대상 서비스로 직접 전달. 인터넷 게이트웨이·NAT가 전혀 필요 없어 보안 강화·지연 감소·규정 준수를 동시에 달성합니다.
 
+#### (4) 종합 아키텍처 다이어그램
+
+파트 3에서 다룬 요소 — 다중 AZ 프라이빗 서브넷, 보안 그룹, NACL, ENI, 인터페이스 엔드포인트 2종(+ 필수 인프라 엔드포인트), PrivateLink — 를 하나의 아키텍처로 통합하면 다음과 같습니다.
+
+```ascii
+[프라이빗 VPC 안의 AgentCore 에이전트 - 종합 네트워크 아키텍처]
+
+사용자 / 호출자
+  │  HTTPS (SigV4 또는 OAuth)
+  v
+┌─ AWS 리전
+│
+├─ VPC (다중 AZ, 인터넷 게이트웨이 없음)
+│  │
+│  ├─ NACL  (서브넷 경계, 상태 비저장, 보조 가드레일)
+│  ├─ 라우팅 테이블  (AgentCore 트래픽을 인터넷이 아닌 엔드포인트로)
+│  │
+│  ├─ 가용 영역 A / 프라이빗 서브넷
+│  │  ├─ 에이전트 컴퓨팅  (AgentCore Runtime, microVM)
+│  │  ├─ 보안 그룹  (상태 저장, 최소 권한, 필요한 포트만)
+│  │  └─ ENI  (프라이빗 IP)
+│  │
+│  ├─ 가용 영역 B / 프라이빗 서브넷   (HA 를 위한 이중화)
+│  │  ├─ 에이전트 컴퓨팅
+│  │  └─ ENI
+│  │
+│  └─ VPC 인터페이스 엔드포인트  (엔드포인트 정책으로 접근 제한)
+│     │    프라이빗 DNS on -> 퍼블릭 이름도 엔드포인트 프라이빗 IP 로 해석
+│     │
+│     ├─ com.amazonaws.<region>.bedrock-agentcore
+│     │     -> Runtime / Memory / Identity / Code Interpreter / Browser
+│     │
+│     ├─ com.amazonaws.<region>.bedrock-agentcore.gateway
+│     │     -> AgentCore Gateway  (MCP 도구)
+│     │
+│     └─ 필수 인프라 엔드포인트  (인터넷 없는 VPC 컨테이너 배포용)
+│           -> ECR (ecr.dkr / ecr.api), S3 (게이트웨이 EP), CloudWatch Logs
+│
+│         모든 트래픽은 AWS PrivateLink 를 통해 AWS 백본에만 머문다
+│         (인터넷 게이트웨이 / NAT 불필요, 전송 중 데이터 보호)
+│         v
+└─ AWS 서비스 계정  (관리형)
+     ├─ AgentCore Runtime / Memory / Identity / Gateway
+     └─ Amazon Bedrock 기반 모델 (Nova / Claude)
+```
+
+이 그림의 핵심은 **에이전트 컴퓨팅이 인터넷 경로 없이 프라이빗 서브넷에만 있고**, 모든 AgentCore·인프라 접근이 인터페이스 엔드포인트와 PrivateLink를 거쳐 AWS 백본에 머문다는 점입니다. 다중 AZ로 가용성을, 보안 그룹·NACL·엔드포인트 정책의 3중 제어로 최소 권한을 확보합니다.
+
 ### 3.5 모범 사례 (Well-Architected Agentic AI Lens)
 
 - 🏛️ **보안 기둥 — 데이터 보호(전송 중)**: PrivateLink·VPC 엔드포인트로 에이전트 트래픽을 AWS 백본에 가둬 전송 중 데이터를 보호한다. 이는 파트 2의 자격 증명 제어와 결합해 계층 6(데이터 보호)을 완성한다.
