@@ -9,8 +9,19 @@ WebApp/deploy.zip
 __pycache__/
 *.pyc
 
+# 백업 파일
+*.bak
+
 # OS
 .DS_Store
 
 # 에디터/도구
 .kiro/
+
+# 콘텐츠 저작용 로컬 스크립트 (배포에 불필요)
+render-d2-diagrams.py
+verify-ascii-diagrams.py
+
+# 콘텐츠 원본/부속 자료 (배포에 불필요)
+Contents/_slide-transcript-backup/
+Contents/code/

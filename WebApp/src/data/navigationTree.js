@@ -53,6 +53,25 @@ export const NAVIGATION_TREE = [
         title: '모듈 6: 참고 자료 및 공식 문서',
         type: 'item',
       },
+      {
+        // 실습 항목: 클릭하면 콘텐츠 전환이 아니라 .ipynb 노트북을 다운로드한다.
+        id: 'L01-Task-1',
+        title: '실습 1.1: Strands Agents를 통한 개인 예산 도우미 구축',
+        type: 'download',
+        downloadFile: 'L01-Task-1_ko_kr.ipynb',
+      },
+      {
+        id: 'L01-Task-2',
+        title: '실습 1.2: Strands를 사용하여 다중 에이전트 워크플로 구축',
+        type: 'download',
+        downloadFile: 'L01-Task-2_ko_kr.ipynb',
+      },
+      {
+        id: 'L01-Task-3',
+        title: '실습 1.3: Amazon Bedrock AgentCore에 에이전트 배포',
+        type: 'download',
+        downloadFile: 'L01-Task-3_ko_kr.ipynb',
+      },
     ],
   },
 ];

@@ -15,12 +15,25 @@ export function toSideNavigationItems(navigationTree) {
   return navigationTree.map((series) => ({
     type: 'section',
     text: series.title,
-    items: (series.children || []).map((item) => ({
-      type: 'link',
-      text: item.title,
-      href: `#/module/${item.id}`,
-      info: item.isNew ? <Badge color="blue">NEW</Badge> : undefined,
-    })),
+    items: (series.children || []).map((item) => {
+      // download 타입(실습): 콘텐츠 전환이 아니라 .ipynb 파일을 내려받는 링크.
+      if (item.type === 'download') {
+        return {
+          type: 'link',
+          text: item.title,
+          href: `/notebooks/${item.downloadFile}`,  // public/notebooks/ 아래 정적 파일
+          external: true,                            // onFollow 에서 다운로드로 분기하는 표식
+          info: <Badge color="green">노트북</Badge>,
+        };
+      }
+      // 일반 모듈: 해시 라우팅으로 본문을 전환한다.
+      return {
+        type: 'link',
+        text: item.title,
+        href: `#/module/${item.id}`,
+        info: item.isNew ? <Badge color="blue">NEW</Badge> : undefined,
+      };
+    }),
   }));
 }
 
@@ -43,8 +56,22 @@ export default function TreeNavigation({ activeItemId, onItemSelect }) {
       activeHref={`#/module/${activeItemId}`}
       items={items}
       onFollow={(event) => {
+        const href = event.detail.href;
+        // 실습 다운로드 링크(/notebooks/*.ipynb): 새 탭에 JSON 원문이 열리는 대신
+        // 클릭 즉시 파일로 저장되도록, 임시 <a download> 앵커를 만들어 클릭한다.
+        if (event.detail.external && href.startsWith('/notebooks/')) {
+          event.preventDefault();
+          const a = document.createElement('a');
+          a.href = href;
+          a.download = href.split('/').pop();  // 저장 파일명 = .ipynb 파일명
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          return;
+        }
+        // 모듈 링크는 SPA 내 전환이므로 기본 이동을 막고 활성 모듈만 바꾼다.
         event.preventDefault();
-        onItemSelect(event.detail.href.replace(/^#\/module\//, ''));
+        onItemSelect(href.replace(/^#\/module\//, ''));
       }}
     />
   );
